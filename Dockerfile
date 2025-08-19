@@ -1,15 +1,21 @@
+# Użyj oficjalnego obrazu Pythona
 FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y     build-essential     libpq-dev     && rm -rf /var/lib/apt/lists/*
-
+# Ustaw katalog roboczy
 WORKDIR /app
 
+# Skopiuj pliki konfiguracyjne
 COPY requirements.txt requirements.txt
+
+# Zainstaluj zależności
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Skopiuj resztę aplikacji
 COPY . .
 
+# Ustaw zmienne środowiskowe
 ENV FLASK_APP=app:app
-ENV PORT=8000
+ENV FLASK_ENV=production
 
-CMD ["gunicorn", "-w", "2", "-k", "gthread", "-b", "0.0.0.0:8000", "app:app"]
+# Komenda startowa: najpierw migracje, potem Gunicorn
+CMD ["sh", "-c", "flask db upgrade && gunicorn --bind 0.0.0.0:$PORT app:app"]
