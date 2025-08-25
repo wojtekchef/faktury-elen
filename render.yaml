@@ -2,16 +2,14 @@ services:
   - type: web
     name: faktury-elen
     env: docker
-    plan: free       # możesz zmienić na starter jeśli web też ma być płatny
+    plan: free
     region: frankfurt
-    dockerCommand: >
-      sh -c "flask db upgrade &&
-             gunicorn -w 2 -k gthread -b 0.0.0.0:$PORT app:app"
+    # Brak dockerCommand -> Render użyje CMD z Dockerfile
     envVars:
       - key: FLASK_APP
         value: app:app
       - key: SECRET_KEY
-        value: "55b941328935747370cbc567efe13d9ee855c0e3dd50c760ef1f9df88c56d6a3"
+        value: "5a39f36d12a2b7b098e22b9677978d24ba683d9b54db365e5a18be1125438592"
       - key: DATABASE_URL
         fromDatabase:
           name: faktury-db
@@ -20,5 +18,5 @@ services:
 databases:
   - name: faktury-db
     databaseName: faktury
-    plan: free       # darmowa baza PostgreSQL (512 MB)
+    plan: free
     region: frankfurt
