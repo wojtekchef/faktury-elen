@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: faktury-elen
+    env: docker
+    plan: starter  # zmień na 'free' jeśli chcesz darmowy
+    region: frankfurt
+    dockerCommand: >
+      sh -c "flask db upgrade &&
+             gunicorn -w 2 -k gthread -b 0.0.0.0:$PORT app:app"
+    envVars:
+      - key: FLASK_APP
+        value: app:app
+      - key: SECRET_KEY
+        value: "44bac9b036cc57abc9de7e9cdbbf0ad32b2c2999dc19dddbcb40b62ed40c5223"
+      - key: DATABASE_URL
+        fromDatabase:
+          name: faktury-db
+          property: connectionString
+
+databases:
+  - name: faktury-db
+    databaseName: faktury
+    plan: starter-plus  # 1 GB (płatny). Dla darmowego użyj 'free'
+    region: frankfurt
