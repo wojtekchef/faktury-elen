@@ -1,91 +1,81 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <title>Faktury</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-</head>
-<body class="bg-light">
-<div class="container py-5">
-  <h1 class="mb-4 text-center">📑 Lista faktur</h1>
-  <div class="card mb-4">
-    <div class="card-header">Dodaj nową fakturę</div>
-    <div class="card-body">
-      <form method="POST" action="/add" class="row g-3">
-        <div class="col-md-4">
-          <input type="text" name="name" class="form-control" placeholder="Nazwa faktury" required>
+{% extends "base.html" %}
+{% block title %}Faktury{% endblock %}
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-5">
+    <div class="card">
+      <div class="card-header">Dodaj fakturę</div>
+      <div class="card-body">
+        <form method="POST" action="/add" class="row g-3">
+          <div class="col-12">
+            <label class="form-label">Nazwa wydatku</label>
+            <input class="form-control" name="name" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Kwota (PLN)</label>
+            <input type="number" step="0.01" name="amount" class="form-control" required>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">Termin płatności</label>
+            <input type="date" name="due_date" class="form-control" required>
+          </div>
+          <div class="col-12">
+            <button class="btn btn-primary w-100">Dodaj</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-body">
+        <div class="d-flex justify-content-between">
+          <div><strong>Suma zaległych:</strong></div>
+          <div><strong>{{ '%.2f'|format(total_open|default(0)) }} PLN</strong></div>
         </div>
-        <div class="col-md-3">
-          <input type="number" step="0.01" name="amount" class="form-control" placeholder="Kwota (PLN)" required>
-        </div>
-        <div class="col-md-3">
-          <input type="date" name="due_date" class="form-control" required>
-        </div>
-        <div class="col-md-2">
-          <button type="submit" class="btn btn-primary w-100">Dodaj</button>
-        </div>
-      </form>
+      </div>
     </div>
   </div>
-  <div class="card">
-    <div class="card-header">Twoje faktury</div>
-    <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-striped table-hover align-middle m-0">
-          <thead class="table-light">
-            <tr>
-              <th>Nazwa</th>
-              <th>Kwota</th>
-              <th>Termin płatności</th>
-              <th>Pozostało dni</th>
-              <th>Status</th>
-              <th>Akcja</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for invoice in invoices %}
-              {% set row_class = '' %}
-              {% if invoice.paid %}
-                {% set row_class = 'table-success' %}
-              {% elif invoice.due_date < today %}
-                {% set row_class = 'table-danger' %}
-              {% elif invoice.days_left <= 3 %}
-                {% set row_class = 'table-warning' %}
-              {% endif %}
-              <tr class="{{ row_class }}">
-                <td>{{ invoice.name }}</td>
-                <td>{{ '%.2f'|format(invoice.amount) }} PLN</td>
-                <td>{{ invoice.due_date.strftime('%Y-%m-%d') }}</td>
-                <td>
-                  {% if invoice.days_left >= 0 %}
-                    {{ invoice.days_left }}
-                  {% else %}
-                    <span class="text-danger">{{ invoice.days_left }}</span>
-                  {% endif %}
-                </td>
-                <td>
-                  {% if invoice.paid %}
-                    ✅ Opłacona
-                  {% elif invoice.due_date < today %}
-                    ⛔ Przeterminowana
-                  {% else %}
-                    ⏳ Do zapłaty
-                  {% endif %}
-                </td>
-                <td>
-                  {% if not invoice.paid %}
-                    <a href="/pay/{{ invoice.id }}" class="btn btn-sm btn-success">Oznacz jako zapłaconą</a>
-                  {% endif %}
-                </td>
+
+  <div class="col-lg-7">
+    <div class="card">
+      <div class="card-header">Moje faktury</div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped m-0">
+            <thead>
+              <tr>
+                <th>Nazwa</th>
+                <th>Kwota</th>
+                <th>Termin</th>
+                <th>Dni do terminu</th>
+                <th>Status</th>
+                <th>Akcja</th>
               </tr>
-            {% else %}
-              <tr><td colspan="6" class="text-center text-muted py-4">Brak dodanych faktur.</td></tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {% for i in invoices %}
+                <tr class="{% if i.paid %}table-success{% elif i.days_left < 0 %}table-danger{% elif i.days_left <= 3 %}table-warning{% endif %}">
+                  <td>{{ i.name }}</td>
+                  <td>{{ '%.2f'|format(i.amount) }} PLN</td>
+                  <td>{{ i.due_date.strftime('%Y-%m-%d') }}</td>
+                  <td>{{ i.days_left }}</td>
+                  <td>{{ 'Zapłacona' if i.paid else 'Do zapłaty' }}</td>
+                  <td>
+                    {% if not i.paid %}
+                      <form method="POST" action="/pay/{{ i.id }}">
+                        <button class="btn btn-sm btn-success">Oznacz jako zapłaconą</button>
+                      </form>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">Brak faktur</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
 </div>
-</body>
-</html>
+{% endblock %}

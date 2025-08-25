@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Reset hasła{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header">Reset hasła</div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control" name="email" required>
+          </div>
+          <button class="btn btn-primary w-100">Wyślij link resetujący</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

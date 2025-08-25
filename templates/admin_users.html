@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Użytkownicy{% endblock %}
+{% block content %}
+<h3 class="mb-3">Użytkownicy</h3>
+<div class="card">
+  <div class="card-body p-0">
+    <table class="table table-striped m-0">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Rola</th>
+          <th>Potwierdzony</th>
+          <th>Akcja</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+          <tr>
+            <td>{{ u.email }}</td>
+            <td>{{ u.role }}</td>
+            <td>{{ 'Tak' if u.is_confirmed else 'Nie' }}</td>
+            <td>
+              {% if u.role != 'admin' %}
+                <form method="POST" action="/admin/make-admin/{{ u.id }}">
+                  <button class="btn btn-sm btn-outline-primary">Nadaj admina</button>
+                </form>
+              {% endif %}
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="4" class="text-center text-muted py-4">Brak użytkowników</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

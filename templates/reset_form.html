@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Ustaw nowe hasło{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-md-5">
+    <div class="card">
+      <div class="card-header">Ustaw nowe hasło</div>
+      <div class="card-body">
+        <form method="POST">
+          <div class="mb-3">
+            <label class="form-label">Nowe hasło</label>
+            <input type="password" class="form-control" name="password" required>
+          </div>
+          <button class="btn btn-primary w-100">Zmień hasło</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
