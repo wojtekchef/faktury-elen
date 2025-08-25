@@ -92,7 +92,7 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), default="user")   # "admin" / "user"
-    is_confirmed = db.Column(db.Boolean, default=False)
+    is_confirmed = db.Column(db.Boolean, default=True)  # <- domyślnie potwierdzone
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     invoices = db.relationship("Invoice", backref="owner", lazy=True)
@@ -149,6 +149,8 @@ def admin_required(f):
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        # username z formularza ignorujemy w modelu (nie ma pola), ale można go dodać w przyszłości
+        _username = request.form.get("username", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         if not email or not password:
@@ -157,41 +159,16 @@ def register():
         if User.query.filter_by(email=email).first():
             flash("Taki email już istnieje.", "danger")
             return redirect(url_for("register"))
-        user = User(email=email, role="user", is_confirmed=False)
+        user = User(email=email, role="user", is_confirmed=True)
         user.set_password(password)
         db.session.add(user)
         db.session.commit()
 
-        # send confirmation
-        token = ts_serializer().dumps({"uid": user.id, "action": "confirm"})
-        confirm_link = url_for("confirm_email", token=token, _external=True)
-        send_email(
-            user.email,
-            "Potwierdź konto",
-            f"Cześć! Kliknij, aby potwierdzić konto: {confirm_link}\n\nLink ważny 48h."
-        )
-        flash("Konto utworzone. Sprawdź email i potwierdź konto.", "success")
-        return redirect(url_for("login"))
+        # Automatyczne logowanie po rejestracji
+        login_user(user)
+        flash("Rejestracja udana — zalogowano.", "success")
+        return redirect(url_for("index"))
     return render_template("register.html")
-
-@app.route("/confirm/<token>")
-def confirm_email(token):
-    try:
-        data = ts_serializer().loads(token, max_age=172800)  # 48h
-        if data.get("action") != "confirm":
-            raise BadSignature("Wrong action")
-    except (BadSignature, SignatureExpired):
-        flash("Link potwierdzający jest nieprawidłowy lub wygasł.", "danger")
-        return redirect(url_for("login"))
-
-    user = User.query.get_or_404(data["uid"])
-    if not user.is_confirmed:
-        user.is_confirmed = True
-        db.session.commit()
-        flash("Konto potwierdzone. Możesz się zalogować.", "success")
-    else:
-        flash("Konto było już potwierdzone.", "info")
-    return redirect(url_for("login"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -202,9 +179,7 @@ def login():
         if not user or not user.check_password(password):
             flash("Nieprawidłowy email lub hasło.", "danger")
             return redirect(url_for("login"))
-        if not user.is_confirmed:
-            flash("Potwierdź email zanim się zalogujesz.", "warning")
-            return redirect(url_for("login"))
+        # brak wymogu confirm
         login_user(user)
         return redirect(url_for("index"))
     return render_template("login.html")
@@ -238,6 +213,9 @@ def reset_request():
         flash("Wysłaliśmy link do resetu hasła (sprawdź pocztę).", "success")
         return redirect(url_for("login"))
     return render_template("reset_request.html")
+
+# alias, bo w jednym z template jest /reset_request
+app.add_url_rule("/reset_request", view_func=reset_request, methods=["GET", "POST"])
 
 @app.route("/reset/<token>", methods=["GET", "POST"])
 def reset_token(token):
@@ -333,7 +311,10 @@ def healthz():
 # -------------------------
 @app.cli.command("create-admin")
 def create_admin():
-    """Create initial admin user with env ADMIN_EMAIL / ADMIN_PASSWORD."""
+    """Create initial admin user with env ADMIN_EMAIL / ADMIN_PASSWORD.\n\n
+    On Render Free (bez shella) możesz ustawić to lokalnie i podłączyć do tej samej bazy,
+    albo chwilowo dodać wywołanie w Dockerfile na jeden deploy.
+    """
     email = os.environ.get("ADMIN_EMAIL")
     password = os.environ.get("ADMIN_PASSWORD")
     if not email or not password:
