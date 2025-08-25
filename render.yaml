@@ -2,7 +2,7 @@ services:
   - type: web
     name: faktury-elen
     env: docker
-    plan: starter  # zmień na 'free' jeśli chcesz darmowy
+    plan: free       # możesz zmienić na starter jeśli web też ma być płatny
     region: frankfurt
     dockerCommand: >
       sh -c "flask db upgrade &&
@@ -11,7 +11,7 @@ services:
       - key: FLASK_APP
         value: app:app
       - key: SECRET_KEY
-        value: "44bac9b036cc57abc9de7e9cdbbf0ad32b2c2999dc19dddbcb40b62ed40c5223"
+        value: "55b941328935747370cbc567efe13d9ee855c0e3dd50c760ef1f9df88c56d6a3"
       - key: DATABASE_URL
         fromDatabase:
           name: faktury-db
@@ -20,5 +20,5 @@ services:
 databases:
   - name: faktury-db
     databaseName: faktury
-    plan: starter-plus  # 1 GB (płatny). Dla darmowego użyj 'free'
+    plan: free       # darmowa baza PostgreSQL (512 MB)
     region: frankfurt
