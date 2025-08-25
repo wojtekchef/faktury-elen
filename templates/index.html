@@ -1,81 +1,11 @@
 {% extends "base.html" %}
-{% block title %}Faktury{% endblock %}
+{% block title %}Panel główny{% endblock %}
 {% block content %}
-<div class="row g-4">
-  <div class="col-lg-5">
-    <div class="card">
-      <div class="card-header">Dodaj fakturę</div>
-      <div class="card-body">
-        <form method="POST" action="/add" class="row g-3">
-          <div class="col-12">
-            <label class="form-label">Nazwa wydatku</label>
-            <input class="form-control" name="name" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Kwota (PLN)</label>
-            <input type="number" step="0.01" name="amount" class="form-control" required>
-          </div>
-          <div class="col-md-6">
-            <label class="form-label">Termin płatności</label>
-            <input type="date" name="due_date" class="form-control" required>
-          </div>
-          <div class="col-12">
-            <button class="btn btn-primary w-100">Dodaj</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="card mt-4">
-      <div class="card-body">
-        <div class="d-flex justify-content-between">
-          <div><strong>Suma zaległych:</strong></div>
-          <div><strong>{{ '%.2f'|format(total_open|default(0)) }} PLN</strong></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="col-lg-7">
-    <div class="card">
-      <div class="card-header">Moje faktury</div>
-      <div class="card-body p-0">
-        <div class="table-responsive">
-          <table class="table table-striped m-0">
-            <thead>
-              <tr>
-                <th>Nazwa</th>
-                <th>Kwota</th>
-                <th>Termin</th>
-                <th>Dni do terminu</th>
-                <th>Status</th>
-                <th>Akcja</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for i in invoices %}
-                <tr class="{% if i.paid %}table-success{% elif i.days_left < 0 %}table-danger{% elif i.days_left <= 3 %}table-warning{% endif %}">
-                  <td>{{ i.name }}</td>
-                  <td>{{ '%.2f'|format(i.amount) }} PLN</td>
-                  <td>{{ i.due_date.strftime('%Y-%m-%d') }}</td>
-                  <td>{{ i.days_left }}</td>
-                  <td>{{ 'Zapłacona' if i.paid else 'Do zapłaty' }}</td>
-                  <td>
-                    {% if not i.paid %}
-                      <form method="POST" action="/pay/{{ i.id }}">
-                        <button class="btn btn-sm btn-success">Oznacz jako zapłaconą</button>
-                      </form>
-                    {% endif %}
-                  </td>
-                </tr>
-              {% else %}
-                <tr><td colspan="6" class="text-center text-muted py-4">Brak faktur</td></tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<h2>Witaj w systemie faktur</h2>
+{% if current_user.is_authenticated %}
+  <p>Zalogowany jako: {{ current_user.username }}</p>
+  <a href="/invoices" class="btn btn-primary">Przeglądaj faktury</a>
+{% else %}
+  <p><a href="/login">Zaloguj się</a> lub <a href="/register">zarejestruj konto</a>.</p>
+{% endif %}
 {% endblock %}

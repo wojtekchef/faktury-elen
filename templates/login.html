@@ -1,28 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Logowanie{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-md-5">
-    <div class="card">
-      <div class="card-header">Zaloguj się</div>
-      <div class="card-body">
-        <form method="POST">
-          <div class="mb-3">
-            <label class="form-label">Email</label>
-            <input type="email" class="form-control" name="email" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label">Hasło</label>
-            <input type="password" class="form-control" name="password" required>
-          </div>
-          <button class="btn btn-primary w-100">Zaloguj</button>
-        </form>
-        <div class="mt-3 d-flex justify-content-between">
-          <a href="/register">Utwórz konto</a>
-          <a href="/reset">Zapomniałeś hasła?</a>
-        </div>
-      </div>
-    </div>
+<h2>Logowanie</h2>
+<form method="POST">
+  <div class="mb-3">
+    <label>Email</label>
+    <input type="email" class="form-control" name="email" required>
   </div>
-</div>
+  <div class="mb-3">
+    <label>Hasło</label>
+    <input type="password" class="form-control" name="password" required>
+  </div>
+  <button type="submit" class="btn btn-primary">Zaloguj</button>
+</form>
+<p class="mt-3"><a href="/reset_request">Zapomniałeś hasła?</a></p>
 {% endblock %}
